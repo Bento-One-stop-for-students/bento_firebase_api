@@ -66,7 +66,7 @@ export const userInfo = async (data) => {
 };
 
 //get User
-const getUser = async(uid) => {
+export const getUser = async(uid) => {
   try {
     const user = await getDoc(doc(db,'users',uid));
     return user.data();
