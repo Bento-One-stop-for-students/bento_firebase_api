@@ -69,7 +69,7 @@ export const userInfo = async (data) => {
 export const getUser = async(uid) => {
   try {
     const user = await getDoc(doc(db,'users',uid));
-    return user.data();
+    return user.data()
   }catch(err) {
     console.log(err)
   }
@@ -78,8 +78,10 @@ export const getUser = async(uid) => {
 //get All users
 export const getAllUsers = async () => {
   try {
+    let allUsers = []
     const users = await getDocs(collection(db, "users"));
-    users.forEach((user) => user.data());
+    users.forEach((user) => users.push(user.data()));
+    return allUsers;
   } catch (err) {
     console.log(err);
   }

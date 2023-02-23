@@ -5,6 +5,7 @@ import {
   query,
   serverTimestamp,
   getDoc,
+  getDocs,
   where,
   addDoc,
   collection,
@@ -13,26 +14,30 @@ import {
   orderBy,
 } from "firebase/firestore";
 
+import { useCollectionData,useDocumentData } from "react-firebase-hooks/firestore";
+
 //Get barber appointment of a user
 export const getBarberIdFromUser = async (userId) => {
   try {
     const q = query(collection(db, "barber"), where("userId", "==", userId));
-    const querySnapshot = await getDoc(q);
-    return querySnapshot;
-  } catch (err) {
+    const querySnapshot = await getDocs(q);
+    const barberAppointment = [];
+    querySnapshot.forEach(doc => barberAppointment.push(doc.data()));
+    return barberAppointment[0];
+  } catch(err) {
     console.log(err);
   }
 };
 //Book Appointment from barber
 export const bookBarber = async (data) => {
   try {
-    const { uid, name, hostel, time } = data;
+    const { uid, name, hostel } = data;
 
     //check if the barber appointment already exists
     const result = getBarberIdFromUser(uid);
-    if(result.hasOwnProperty('name')) {
-        console.log('Appointment already exists')
-        return;
+    if(result) {
+      console.log('Appointment already exists')
+      return
     }
 
     //else add the appointment
@@ -40,7 +45,6 @@ export const bookBarber = async (data) => {
       userId: uid,
       name: name,
       hostel: hostel,
-      time: time,
       timestamp: serverTimestamp(),
     });
   } catch (err) {
@@ -81,12 +85,14 @@ export const deleteBarberAppointment = async (uid) => {
 export const getAllAppointment = async () => {
   try {
     let appointments = [];
-    const unsub = onSnapshot(
-      collection(db, "barber", orderBy("time"), orderBy("timestamp"), (doc) =>
+    const unsub =  onSnapshot(
+      collection(db, "barber", orderBy("timestamp"), (doc) =>
         appointments.push(doc.data())
       )
     );
-    return { unsub, appointments };
+    console.log("data", appointments);
+    return appointments;
+    // return { unsub, appointments };
   } catch (err) {
     console.log(err);
   }
