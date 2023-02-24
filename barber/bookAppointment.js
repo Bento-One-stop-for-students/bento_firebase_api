@@ -22,7 +22,7 @@ export const getBarberIdFromUser = async (userId) => {
     const q = query(collection(db, "barber"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
     const barberAppointment = [];
-    querySnapshot.forEach(doc => barberAppointment.push(doc.data()));
+    querySnapshot.forEach(doc => barberAppointment.push({'barberId':doc.id,...doc.data()}));
     return barberAppointment[0];
   } catch(err) {
     console.log(err);
@@ -31,20 +31,25 @@ export const getBarberIdFromUser = async (userId) => {
 //Book Appointment from barber
 export const bookBarber = async (data) => {
   try {
-    const { uid, name, hostel } = data;
-
+    const { uid, name, hostel,hair,beard,massage } = data;
+    const serviceTime = (hair+beard+massage)*10
     //check if the barber appointment already exists
-    const result = getBarberIdFromUser(uid);
-    if(result) {
-      console.log('Appointment already exists')
-      return
-    }
+    // const result = getBarberIdFromUser(uid);
+    // if(result) {
+    //   console.log('Appointment already exists')
+    //   return
+    // }
 
     //else add the appointment
     await addDoc(collection(db, "barber"), {
       userId: uid,
       name: name,
       hostel: hostel,
+      hair,
+      beard,
+      massage,
+      serviceTime,
+      // ewt,
       timestamp: serverTimestamp(),
     });
   } catch (err) {
@@ -74,8 +79,8 @@ export const updateBarberAppointment = async (uid, time) => {
 //delete barber appointment
 export const deleteBarberAppointment = async (uid) => {
   try {
-    const appointment = getBarberIdFromUser(uid);
-    await deleteDoc(doc(db, "barber", appointment.id));
+    const {barberId} = await getBarberIdFromUser(uid)
+    await deleteDoc(doc(db, "barber", barberId));
   } catch (err) {
     console.log(err);
   }
@@ -97,3 +102,14 @@ export const getAllAppointment = async () => {
     console.log(err);
   }
 };
+
+
+// const cloudFunction = (req)=>{
+//   let data = req.data;
+
+//   let allData = firestore.data; 
+
+//   let newEstimated = prev.service + pre.estimated;
+
+
+// }
