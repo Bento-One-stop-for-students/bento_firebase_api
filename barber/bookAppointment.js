@@ -4,7 +4,6 @@ import {
   doc,
   query,
   serverTimestamp,
-  getDoc,
   getDocs,
   where,
   addDoc,
@@ -14,10 +13,10 @@ import {
   orderBy,
 } from "firebase/firestore";
 
-import { useCollectionData,useDocumentData } from "react-firebase-hooks/firestore";
+
 
 //Get barber appointment of a user
-export const getBarberIdFromUser = async (userId) => {
+export const getBarberAppointmentData = async (userId) => {
   try {
     const q = query(collection(db, "barber"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
@@ -32,13 +31,7 @@ export const getBarberIdFromUser = async (userId) => {
 export const bookBarber = async (data) => {
   try {
     const { uid, name, hostel,hair,beard,massage } = data;
-    const serviceTime = (hair+beard+massage)*10
-    //check if the barber appointment already exists
-    // const result = getBarberIdFromUser(uid);
-    // if(result) {
-    //   console.log('Appointment already exists')
-    //   return
-    // }
+    const serviceTime = hair*20 + beard*10 + massage*10
 
     //else add the appointment
     await addDoc(collection(db, "barber"), {
@@ -49,7 +42,6 @@ export const bookBarber = async (data) => {
       beard,
       massage,
       serviceTime,
-      // ewt,
       timestamp: serverTimestamp(),
     });
   } catch (err) {
