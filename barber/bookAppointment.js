@@ -13,25 +13,25 @@ import {
   orderBy,
 } from "firebase/firestore";
 
-
-
 //Get barber appointment of a user
 export const getBarberAppointmentData = async (userId) => {
   try {
     const q = query(collection(db, "barber"), where("userId", "==", userId));
     const querySnapshot = await getDocs(q);
     const barberAppointment = [];
-    querySnapshot.forEach(doc => barberAppointment.push({'barberId':doc.id,...doc.data()}));
+    querySnapshot.forEach((doc) =>
+      barberAppointment.push({ barberId: doc.id, ...doc.data() })
+    );
     return barberAppointment[0];
-  } catch(err) {
+  } catch (err) {
     console.log(err);
   }
 };
 //Book Appointment from barber
 export const bookBarber = async (data) => {
   try {
-    const { uid, name, hostel,hair,beard,massage } = data;
-    const serviceTime = hair*20 + beard*10 + massage*10
+    const { uid, name, hostel, hair, beard, massage } = data;
+    const serviceTime = hair * 20 + beard * 10 + massage * 10;
 
     //else add the appointment
     await addDoc(collection(db, "barber"), {
@@ -71,7 +71,7 @@ export const updateBarberAppointment = async (uid, time) => {
 //delete barber appointment
 export const deleteBarberAppointment = async (uid) => {
   try {
-    const {barberId} = await getBarberIdFromUser(uid)
+    const { barberId } = await getBarberIdFromUser(uid);
     await deleteDoc(doc(db, "barber", barberId));
   } catch (err) {
     console.log(err);
@@ -82,7 +82,7 @@ export const deleteBarberAppointment = async (uid) => {
 export const getAllAppointment = async () => {
   try {
     let appointments = [];
-    const unsub =  onSnapshot(
+    const unsub = onSnapshot(
       collection(db, "barber", orderBy("timestamp"), (doc) =>
         appointments.push(doc.data())
       )
@@ -95,13 +95,25 @@ export const getAllAppointment = async () => {
   }
 };
 
-
 // const cloudFunction = (req)=>{
 //   let data = req.data;
 
-//   let allData = firestore.data; 
+//   let allData = firestore.data;
 
 //   let newEstimated = prev.service + pre.estimated;
 
-
 // }
+
+const cutBarberAppointment = async (tokenNo) => {
+  try {
+    const q = query(collection(db, "barber"), where("tokenNo", "==", tokenNo));
+    const allAppointment = await getDocs(q);
+    allAppointment.forEach((appointment) => {
+      deleteDoc(doc(db, "barber", appointment.id))
+        .then(() => console.log("successfully deleted"))
+        .catch((err) => console.log(err));
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
