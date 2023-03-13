@@ -66,10 +66,10 @@ export const updateBarberAppointment = async (uid, time) => {
 };
 
 //delete barber appointment
-export const deleteBarberAppointment = async (uid) => {
+export const deleteBarberBooking = async (id) => {
   try {
-    const { barberId } = await getBarberAppointmentData(uid);
-    await deleteDoc(doc(db, "barber", barberId));
+    await deleteDoc(doc(db, "barber",id));
+    return "booking deleted"
   } catch (err) {
     console.log(err);
   }
