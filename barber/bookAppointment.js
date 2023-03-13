@@ -1,4 +1,4 @@
-import { auth, db } from "../../firebase.js";
+import { db } from "../../firebase.js";
 import {
   setDoc,
   doc,
@@ -11,18 +11,15 @@ import {
   deleteDoc,
   onSnapshot,
   orderBy,
+  getDoc
 } from "firebase/firestore";
+
 
 //Get barber appointment of a user
 export const getBarberAppointmentData = async (userId) => {
   try {
-    const q = query(collection(db, "barber"), where("userId", "==", userId));
-    const querySnapshot = await getDocs(q);
-    const barberAppointment = [];
-    querySnapshot.forEach((doc) =>
-      barberAppointment.push({ barberId: doc.id, ...doc.data() })
-    );
-    return barberAppointment[0];
+    const appointment = await getDoc(doc(db,'barber',userId));
+    return {id: appointment.id, ...appointment.data()}
   } catch (err) {
     console.log(err);
   }
@@ -53,7 +50,7 @@ export const bookBarber = async (data) => {
 export const updateBarberAppointment = async (uid, time) => {
   try {
     //get appointment id
-    const appointment = getBarberIdFromUser(uid);
+    const appointment = getBarberAppointmentData(uid);
     await setDoc(
       doc(db, "barber", appointment.id),
       {
@@ -71,7 +68,7 @@ export const updateBarberAppointment = async (uid, time) => {
 //delete barber appointment
 export const deleteBarberAppointment = async (uid) => {
   try {
-    const { barberId } = await getBarberIdFromUser(uid);
+    const { barberId } = await getBarberAppointmentData(uid);
     await deleteDoc(doc(db, "barber", barberId));
   } catch (err) {
     console.log(err);
@@ -95,16 +92,8 @@ export const getAllAppointment = async () => {
   }
 };
 
-// const cloudFunction = (req)=>{
-//   let data = req.data;
 
-//   let allData = firestore.data;
-
-//   let newEstimated = prev.service + pre.estimated;
-
-// }
-
-const cutBarberAppointment = async (tokenNo) => {
+export const cutBarberAppointment = async (tokenNo) => {
   try {
     const q = query(collection(db, "barber"), where("tokenNo", "==", tokenNo));
     const allAppointment = await getDocs(q);

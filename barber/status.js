@@ -1,17 +1,11 @@
-import {doc,collection,query, where, getDocs,setDoc} from 'firebase/firestore';
+import {doc,setDoc} from 'firebase/firestore';
 import { db } from "../../firebase.js";
 
-export const updateServiceStatus = async(uid,status,resume) => {
+export const updateServiceStatus = async(uid,status) => {
     try {
-        const q = query(collection(db,'status'),where('uid','==',uid));
-        const allServiceStatus = await getDocs(q);
-        allServiceStatus.forEach(service => {
-            setDoc(doc(db,'status',service.id), {
-                ...service.data(),
-                status,
-                resume,
-            },{merge:true})
-        })
+        await setDoc(doc(db,'status',uid), {
+            status
+        },{merge:true})
     }catch(err) {
         console.log(err)
     }
