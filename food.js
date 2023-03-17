@@ -3,12 +3,13 @@ import {
   setDoc,
   getDocs,
   collection,
-  query,
-  where,
   addDoc,
   deleteDoc,
+  query,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import axios from 'axios'
 
 export const getAllFoodItems = async () => {
   try {
@@ -21,13 +22,28 @@ export const getAllFoodItems = async () => {
   }
 };
 
-export const pushItems = async (data) => {
+export const createOrder = async (data) => {
   try {
-    await addDoc(collection(db, "orderItem"), data);
-  } catch (error) {
-    console.log(error.message);
+    const {id,...rest} = data;
+    const res = await axios.post(`https://us-central1-bento-5ad4e.cloudfunctions.net/app/api/order/${id}`, {...rest})
+    return res.data;
+  } catch (err) {
+    throw err
   }
 };
+
+export const cancelUserOrder = async (userId, orderId) => {
+  try {
+    const delete1 = deleteDoc(
+      doc(db, `users/${userId}/orders/${orderId}`)
+    );
+    const delete2 = deleteDoc(doc(db, "todayOrders", orderId));
+    await Promise.all([delete1, delete2]);
+  } catch (err) {
+    throw err;
+  }
+};
+
 
 export const updateAvailability = async (id, availability) => {
   try {
@@ -51,36 +67,30 @@ export const pushFoodItem = async (data) => {
   }
 };
 
-export const getUserOrder = async (id) => {
+export const getUserOrders = async (id) => {
   try {
-    const q = query(collection(db, "orderItem"), where("userId", "==", id));
+    const q = query(collection(db, `users/${id}/orders`),orderBy('timestamp','desc'));
     const allUserOrder = await getDocs(q);
     const allOrder = [];
     allUserOrder.forEach((order) =>
       allOrder.push({ orderId: order.id, ...order.data() })
     );
     return allOrder;
-  } catch (er) {
-    console.log(er);
+  } catch (err) {
+    throw err;
   }
 };
 
-export const getAllOrderItem = async () => {
+export const getAllTodayOrders = async () => {
   try {
-    let allOrderItem = [];
-    const items = await getDocs(collection(db, "orderItem"));
-    items.forEach((item) => {
-      allOrderItem.push({ id: item.id, ...item.data() });
-    });
-    return allOrderItem;
+    const allOrders = await getDocs(collection(db,'todayOrders'));
+    let allOrdersData = allOrders.map(order => {
+      return {orderId:order.id,...order.data()}
+    })
+    return allOrdersData;
   } catch (err) {
     console.log(err);
   }
 };
-export const deleteOrderItem = async (docId) => {
-  try {
-    await deleteDoc(doc(db, "orderItem", docId));
-  } catch (error) {
-    console.log(error);
-  }
-};
+
+
